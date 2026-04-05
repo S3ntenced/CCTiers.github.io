@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>CCTiers - Crystal PvP Tierlist</title>
+
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background: #0d1117;
+  color: #e6edf3;
+  margin: 0;
+}
+
+header {
+  background: #161b22;
+  padding: 20px;
+  text-align: center;
+  border-bottom: 2px solid #30363d;
+}
+
+h1 {
+  margin: 0;
+  color: #58a6ff;
+}
+
+.search-box {
+  margin: 20px;
+  text-align: center;
+}
+
+input {
+  padding: 10px;
+  width: 300px;
+  border-radius: 8px;
+  border: none;
+  outline: none;
+}
+
+.result {
+  margin-top: 10px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.result-item {
+  background: #21262d;
+  padding: 6px 10px;
+  border-radius: 6px;
+}
+
+.tiers {
+  max-width: 800px;
+  margin: auto;
+  padding: 20px;
+}
+
+.tier {
+  background: #161b22;
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 10px;
+  border-left: 8px solid;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  cursor: pointer;
+}
+
+.tier:hover {
+  transform: scale(1.02);
+  box-shadow: 0 0 10px rgba(255,255,255,0.1);
+}
+
+.tier h2 {
+  margin: 0;
+}
+
+.players {
+  display: none;
+  flex-direction: column;
+  margin-top: 10px;
+  gap: 6px;
+}
+
+.player {
+  background: #21262d;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Tier colors */
+.tier5 { border-color: #2ecc71; box-shadow: 0 0 15px rgba(46,204,113,0.25); }
+.tier4 { border-color: #a3e635; box-shadow: 0 0 15px rgba(163,230,53,0.25); }
+.tier3 { border-color: #facc15; box-shadow: 0 0 15px rgba(250,204,21,0.25); }
+.tier2 { border-color: #fb923c; box-shadow: 0 0 15px rgba(251,146,60,0.25); }
+.tier1 { border-color: #ef4444; box-shadow: 0 0 15px rgba(239,68,68,0.25); }
+
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>CCTiers</h1>
+  <p>Crystal PvP Tierlist</p>
+</header>
+
+<div class="search-box">
+  <input type="text" id="search" placeholder="Search player name...">
+  <div class="result" id="result"></div>
+</div>
+
+<div class="tiers" id="tiers"></div>
+
+<script>
+let globalData = {};
+
+const order = ["HT1","LT1","HT2","LT2","HT3","LT3","HT4","LT4","HT5","LT5"];
+
+// Load JSON
+fetch("tiers.json")
+.then(res => res.json())
+.then(data => {
+  globalData = data;
+  renderTiers(data);
+});
+
+// Render tiers
+function renderTiers(tierData) {
+  const container = document.getElementById("tiers");
+  container.innerHTML = "";
+
+  for (let tier of order) {
+    const div = document.createElement("div");
+    div.className = "tier tier" + tier.slice(-1);
+
+    const title = document.createElement("h2");
+    title.textContent = tier + " (" + tierData[tier].length + ")";
+    div.appendChild(title);
+
+    const playerList = document.createElement("div");
+    playerList.className = "players";
+
+    const sorted = [...tierData[tier]].sort();
+
+    for (let player of sorted) {
+      const row = document.createElement("div");
+      row.className = "player";
+      row.textContent = player;
+      playerList.appendChild(row);
+    }
+
+    div.appendChild(playerList);
+
+    div.addEventListener("click", () => {
+      playerList.style.display =
+        playerList.style.display === "flex" ? "none" : "flex";
+    });
+
+    container.appendChild(div);
+  }
+}
+
+// Search players
+document.getElementById("search").addEventListener("input", function() {
+  const query = this.value.toLowerCase();
+  const result = document.getElementById("result");
+  result.innerHTML = "";
+
+  if (!query) return;
+
+  for (let tier in globalData) {
+    for (let player of globalData[tier]) {
+      if (player.toLowerCase().includes(query)) {
+        const div = document.createElement("div");
+        div.className = "result-item";
+        div.textContent = `${player} → ${tier}`;
+        result.appendChild(div);
+      }
+    }
+  }
+
+  if (!result.hasChildNodes()) {
+    result.textContent = "Player not found";
+  }
+});
+</script>
+
+</body>
+</html>
